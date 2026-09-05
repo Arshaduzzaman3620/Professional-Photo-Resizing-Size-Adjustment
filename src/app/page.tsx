@@ -63,6 +63,145 @@ const countries = [
       },
     ],
   },
+  {
+    id: "south-korea",
+    name: "South Korea",
+    flag: "KR",
+    color: "blue",
+    sizes: [
+      {
+        id: "passport",
+        label: "Passport",
+        dimensions: "35 × 45 mm",
+        pixels: "413 × 531 px",
+        detail: "Republic of Korea passport",
+      },
+      {
+        id: "visa",
+        label: "Visa photo",
+        dimensions: "35 × 45 mm",
+        pixels: "413 × 531 px",
+        detail: "Visa and official forms",
+      },
+    ],
+  },
+  {
+    id: "australia",
+    name: "Australia",
+    flag: "AU",
+    color: "navy",
+    sizes: [
+      {
+        id: "passport",
+        label: "Passport",
+        dimensions: "35 × 45 mm",
+        pixels: "413 × 531 px",
+        detail: "Australian passport",
+      },
+      {
+        id: "visa",
+        label: "Visa photo",
+        dimensions: "35 × 45 mm",
+        pixels: "413 × 531 px",
+        detail: "Visa and official forms",
+      },
+    ],
+  },
+  {
+    id: "canada",
+    name: "Canada",
+    flag: "CA",
+    color: "red",
+    sizes: [
+      {
+        id: "passport",
+        label: "Passport",
+        dimensions: "50 × 70 mm",
+        pixels: "591 × 827 px",
+        detail: "Canadian passport",
+      },
+      {
+        id: "permanent-resident",
+        label: "Permanent resident card",
+        dimensions: "35 × 45 mm",
+        pixels: "413 × 531 px",
+        detail: "Canadian PR card application",
+      },
+    ],
+  },
+  {
+    id: "bangladesh",
+    name: "Bangladesh",
+    flag: "BD",
+    color: "green",
+    sizes: [
+      {
+        id: "passport",
+        label: "Passport",
+        dimensions: "35 × 45 mm",
+        pixels: "413 × 531 px",
+        detail: "Bangladeshi passport",
+      },
+      {
+        id: "visa",
+        label: "Visa photo",
+        dimensions: "35 × 45 mm",
+        pixels: "413 × 531 px",
+        detail: "Visa and official forms",
+      },
+    ],
+  },
+  {
+    id: "germany",
+    name: "Germany",
+    flag: "DE",
+    color: "black",
+    sizes: [
+      {
+        id: "passport",
+        label: "Passport",
+        dimensions: "35 × 45 mm",
+        pixels: "413 × 531 px",
+        detail: "Biometrischer Reisepass",
+      },
+      {
+        id: "id-card",
+        label: "ID card",
+        dimensions: "35 × 45 mm",
+        pixels: "413 × 531 px",
+        detail: "Personalausweis application",
+      },
+      {
+        id: "visa",
+        label: "Visa photo",
+        dimensions: "35 × 45 mm",
+        pixels: "413 × 531 px",
+        detail: "Visa and official forms",
+      },
+    ],
+  },
+  {
+    id: "ireland",
+    name: "Ireland",
+    flag: "IE",
+    color: "orange",
+    sizes: [
+      {
+        id: "passport",
+        label: "Passport",
+        dimensions: "35 × 45 mm",
+        pixels: "413 × 531 px",
+        detail: "Irish passport",
+      },
+      {
+        id: "visa",
+        label: "Visa photo",
+        dimensions: "35 × 45 mm",
+        pixels: "413 × 531 px",
+        detail: "Visa and official forms",
+      },
+    ],
+  },
 ];
 
 const workflow = ["Upload", "Prepare", "Choose size", "Download"];
@@ -78,6 +217,9 @@ export default function Home() {
   const [isPrepared, setIsPrepared] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
+  const [noticeKind, setNoticeKind] = useState<"error" | "success" | "info">(
+    "info",
+  );
   const fileInput = useRef<HTMLInputElement>(null);
 
   const country =
@@ -96,14 +238,18 @@ export default function Home() {
     const supportedTypes = ["image/jpeg", "image/png", "image/webp"];
     if (!supportedTypes.includes(file.type)) {
       setNotice("Please choose a JPG, PNG, or WEBP image.");
+      setNoticeKind("error");
       return;
     }
     if (file.size > 10 * 1024 * 1024) {
       setNotice(
         "That file is larger than 10 MB. Please choose a smaller image.",
       );
+      setNoticeKind("error");
       return;
     }
+    if (imageUrl) URL.revokeObjectURL(imageUrl);
+    if (processedUrl) URL.revokeObjectURL(processedUrl);
     setNotice(null);
     setFileName(file.name);
     setSourceFile(file);
@@ -123,6 +269,8 @@ export default function Home() {
   }
 
   function resetUpload() {
+    if (imageUrl) URL.revokeObjectURL(imageUrl);
+    if (processedUrl) URL.revokeObjectURL(processedUrl);
     setFileName(null);
     setSourceFile(null);
     setImageUrl(null);
@@ -172,65 +320,76 @@ export default function Home() {
     if (!sourceFile || isPreparing) return;
     setIsPreparing(true);
     setNotice("Removing the background and preparing your photo...");
+    setNoticeKind("info");
     try {
       const processingFile = await loadSourceImage(sourceFile);
       const transparentBlob = await removeBackground(processingFile);
+      if (processedUrl) URL.revokeObjectURL(processedUrl);
       setProcessedUrl(URL.createObjectURL(transparentBlob));
       setIsPreparing(false);
       setIsPrepared(true);
       setNotice("Background removed. Your white-background photo is ready.");
+      setNoticeKind("success");
     } catch {
       setIsPreparing(false);
       setNotice(
         "We could not remove the background. Please try a clear, front-facing photo.",
       );
+      setNoticeKind("error");
     }
   }
 
   async function downloadPhoto() {
     if (!imageUrl) return;
-    const source = new window.Image();
-    source.src = processedUrl ?? imageUrl;
-    await new Promise<void>((resolve, reject) => {
-      source.onload = () => resolve();
-      source.onerror = () => reject(new Error("Unable to read image"));
-    });
-    const [widthPx, heightPx] = size.pixels
-      .split(" × ")
-      .map((value) => Number(value.replace(" px", "")));
-    const canvas = document.createElement("canvas");
-    canvas.width = widthPx;
-    canvas.height = heightPx;
-    const context = canvas.getContext("2d");
-    if (!context) return;
-    context.fillStyle = "#ffffff";
-    context.fillRect(0, 0, canvas.width, canvas.height);
-    const scale = Math.max(
-      canvas.width / source.width,
-      canvas.height / source.height,
-    );
-    const drawWidth = source.width * scale;
-    const drawHeight = source.height * scale;
-    context.drawImage(
-      source,
-      (canvas.width - drawWidth) / 2,
-      (canvas.height - drawHeight) / 2,
-      drawWidth,
-      drawHeight,
-    );
-    const photoBlob = await new Promise<Blob | null>((resolve) =>
-      canvas.toBlob(resolve, "image/jpeg", 0.95),
-    );
-    if (!photoBlob) throw new Error("Unable to create download");
-    const downloadUrl = URL.createObjectURL(photoBlob);
-    const link = document.createElement("a");
-    link.download = `arshad-${selectedCountry}-${selectedSize}-${widthPx}x${heightPx}px.jpg`;
-    link.href = downloadUrl;
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-    window.setTimeout(() => URL.revokeObjectURL(downloadUrl), 1000);
-    setNotice(`Downloaded ${widthPx} × ${heightPx} px JPG.`);
+    try {
+      const source = new window.Image();
+      const load = new Promise<void>((resolve, reject) => {
+        source.onload = () => resolve();
+        source.onerror = () => reject(new Error("Unable to read image"));
+      });
+      source.src = processedUrl ?? imageUrl;
+      await load;
+      const [widthPx, heightPx] = size.pixels
+        .split(" × ")
+        .map((value) => Number(value.replace(" px", "")));
+      const canvas = document.createElement("canvas");
+      canvas.width = widthPx;
+      canvas.height = heightPx;
+      const context = canvas.getContext("2d");
+      if (!context) throw new Error("Canvas is not supported");
+      context.fillStyle = "#ffffff";
+      context.fillRect(0, 0, canvas.width, canvas.height);
+      const scale = Math.max(
+        canvas.width / source.width,
+        canvas.height / source.height,
+      );
+      const drawWidth = source.width * scale;
+      const drawHeight = source.height * scale;
+      context.drawImage(
+        source,
+        (canvas.width - drawWidth) / 2,
+        (canvas.height - drawHeight) / 2,
+        drawWidth,
+        drawHeight,
+      );
+      const photoBlob = await new Promise<Blob | null>((resolve) =>
+        canvas.toBlob(resolve, "image/jpeg", 0.95),
+      );
+      if (!photoBlob) throw new Error("Unable to create download");
+      const downloadUrl = URL.createObjectURL(photoBlob);
+      const link = document.createElement("a");
+      link.download = `arshad-${selectedCountry}-${selectedSize}-${widthPx}x${heightPx}px.jpg`;
+      link.href = downloadUrl;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.setTimeout(() => URL.revokeObjectURL(downloadUrl), 1000);
+      setNotice(`Downloaded ${widthPx} × ${heightPx} px JPG.`);
+      setNoticeKind("success");
+    } catch {
+      setNotice("We could not prepare your download. Please try again.");
+      setNoticeKind("error");
+    }
   }
 
   function primaryAction() {
@@ -355,7 +514,7 @@ export default function Home() {
             </div>
             {notice && (
               <p
-                className={`notice ${notice.includes("downloaded") ? "success-notice" : ""}`}
+                className={`notice ${noticeKind === "success" ? "success-notice" : ""}`}
                 role="status"
               >
                 {notice}

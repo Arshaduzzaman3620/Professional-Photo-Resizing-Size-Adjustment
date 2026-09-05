@@ -407,6 +407,24 @@ h1 em {
 .flag-malaysia {
   background: #cc4a3d;
 }
+.flag-south-korea {
+  background: #31558f;
+}
+.flag-australia {
+  background: #1d3c68;
+}
+.flag-canada {
+  background: #c74343;
+}
+.flag-bangladesh {
+  background: #287b5a;
+}
+.flag-germany {
+  background: #2b2b2b;
+}
+.flag-ireland {
+  background: #2f8f4e;
+}
 .radio-dot {
   width: 7px;
   height: 7px;

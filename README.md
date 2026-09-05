@@ -14,7 +14,7 @@ The project is built with the hope that it makes an annoying task feel simple. F
 - Place the person on a clean white background
 - Upscale small source images before processing
 - Prepare exact passport and ID photo proportions
-- Support Japan and Malaysia photo requirements
+- Support Japan, Malaysia, South Korea, Australia, Canada, Bangladesh, Germany, and Ireland photo requirements
 - Show physical and pixel dimensions before download
 - Download a correctly sized JPG
 - Keep uploaded photos local to the browser during processing
@@ -31,6 +31,37 @@ The project is built with the hope that it makes an annoying task feel simple. F
 
 - Passport: 35 × 50 mm, 413 × 591 px
 - Visa photo: 35 × 50 mm, 413 × 591 px
+
+### South Korea
+
+- Passport: 35 × 45 mm, 413 × 531 px
+- Visa photo: 35 × 45 mm, 413 × 531 px
+
+### Australia
+
+- Passport: 35 × 45 mm, 413 × 531 px
+- Visa photo: 35 × 45 mm, 413 × 531 px
+
+### Canada
+
+- Passport: 50 × 70 mm, 591 × 827 px
+- Permanent resident card: 35 × 45 mm, 413 × 531 px
+
+### Bangladesh
+
+- Passport: 35 × 45 mm, 413 × 531 px
+- Visa photo: 35 × 45 mm, 413 × 531 px
+
+### Germany
+
+- Passport: 35 × 45 mm, 413 × 531 px
+- ID card: 35 × 45 mm, 413 × 531 px
+- Visa photo: 35 × 45 mm, 413 × 531 px
+
+### Ireland
+
+- Passport: 35 × 45 mm, 413 × 531 px
+- Visa photo: 35 × 45 mm, 413 × 531 px
 
 The country and size definitions are centralized in `src/app/page.tsx`, making it straightforward to add another country or document type.
 
